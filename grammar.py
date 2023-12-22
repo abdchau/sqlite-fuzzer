@@ -13,8 +13,14 @@ class MetaData:
         self.created_tables = set()
         self.deleted_tables = set()
 
-    def add_created_table(self, table, *args):
-        self.created_tables.add(table)
+    def add_created_table(self, *args):
+        args = list(args)
+        if random.uniform(0, 1) < 0.9:
+            for _ in range(0, 3 - len(args[1])):
+                args[1] += random.choice(string.ascii_lowercase)
+        self.created_tables.add(args[1])
+
+        return args
 
     def add_deleted_table(self, table):
         self.deleted_tables.add(table)
@@ -55,13 +61,22 @@ general_definitions = {
     "<table_name>":[("<string>", opts(pre=lambda: md.hijack_table_name(0.5)))],
     "<string>": ["<letter>", ("<letter><string>", opts(prob=0.7))],
     "<letter>": [c for c in string.ascii_letters],
+
+    "<if_not_exist>": [("", opts(prob=0.98)), "IF NOT EXISTS "],
+    
+    "<signed_number>": ["<sign><numeric_literal>"],
+    "<sign>": ["+", "-", ""],
+    "<numeric_literal>": ["<digit><numeric_literal>", "<digit>"],
+    "<digit>": [d for d in string.digits],
 }
 grammar.update(general_definitions)
 
 create_table_grammar = {
-    "<create_table>" : [("CREATE TABLE <table_name> (<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<create_table>" : [("CREATE <temp>TABLE <table_name> <if_not_exist>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<temp>": [ ("", opts(prob=0.9)), "TEMPORARY ", "TEMP "],
     "<table_columns_def>": ["<table_column_def>", ("<table_columns_def>,<table_column_def>", opts(prob=0.7))],
-    "<table_column_def>": ["<string> TEXT"],
+    "<table_column_def>": ["<string> <column_modifier>TEXT"],
+    "<column_modifier>": [("", opts(prob=0.8)), "(<signed_number) ", "(<signed_number>,<signed_number>) "]
 }
 
 grammar.update(create_table_grammar)
