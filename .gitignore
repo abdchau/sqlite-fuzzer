@@ -1,0 +1,10 @@
+__pycache__
+test*.py
+out*
+.ipynb_checkpoints
+*.gcda
+plot.pdf
+*.db
+coverage_report.csv
+*.html
+*.css
