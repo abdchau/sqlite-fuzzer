@@ -12,6 +12,10 @@ class MetaData:
     def __init__(self) -> None:
         self.created_tables = set()
         self.deleted_tables = set()
+        self.input_fuzzed = 0
+
+    def post_start(self):
+        self.input_fuzzed += 1
 
     def add_created_table(self, *args):
         args = list(args)
@@ -52,7 +56,7 @@ md = MetaData()
 
 
 grammar = {
-    "<start>": ["<create_table>"],
+    "<start>": [("<create_table>", opts(post=lambda *args: md.post_start()))],
     # general_definitions
     # create_table_grammar
 }
