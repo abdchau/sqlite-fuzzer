@@ -47,10 +47,21 @@ md = MetaData()
 
 grammar = {
     "<start>": ["<create_table>"],
-    "<create_table>" : [("CREATE TABLE <table_name> (<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    # general_definitions
+    # create_table_grammar
+}
+
+general_definitions = {
     "<table_name>":[("<string>", opts(pre=lambda: md.hijack_table_name(0.5)))],
-    "<table_columns_def>": ["<table_column_def>", "<table_columns_def>,<table_column_def>"],
-    "<table_column_def>": ["<string> TEXT"],
     "<string>": ["<letter>", ("<letter><string>", opts(prob=0.7))],
     "<letter>": [c for c in string.ascii_letters],
 }
+grammar.update(general_definitions)
+
+create_table_grammar = {
+    "<create_table>" : [("CREATE TABLE <table_name> (<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<table_columns_def>": ["<table_column_def>", ("<table_columns_def>,<table_column_def>", opts(prob=0.7))],
+    "<table_column_def>": ["<string> TEXT"],
+}
+
+grammar.update(create_table_grammar)
