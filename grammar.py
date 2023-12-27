@@ -10,19 +10,30 @@ import random
 import copy
 
 class MetaData:
+    # global initialization
     def __init__(self) -> None:
         self.created_tables = set()
         self.table_columns = {}        # {table_name: [column_names]}
         self.current_columns = []
+        self.current_primary_generated = False
 
         self.deleted_tables = set()
         self.input_fuzzed = 0
 
-    def post_start(self):
+    # initialization for single fuzz generation
+    def pre_start(self):
+        self.current_primary_generated = False
+
+        # MUST RETURN FALSE
+        return False
+
+    # called after each fuzz generation
+    def post_start(self, *args):
         self.input_fuzzed += 1
 
+        return args
+
     def add_created_table(self, *args):
-        print(self.table_columns)
         args = list(args)
         if random.uniform(0, 1) < 0.9:
             for _ in range(0, 3 - len(args[1])):
@@ -37,10 +48,7 @@ class MetaData:
         return args
 
     def add_column(self, args):
-        print(args)
-        # exit()
         self.current_columns.append(args[0])
-        print(self.current_columns)
         return args
 
     def add_deleted_table(self, table):
@@ -73,7 +81,8 @@ md = MetaData()
 
 
 grammar = {
-    "<start>": [("<create_table>", opts(post=lambda *args: md.post_start()))],
+    "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
+    "<stmt>": ["<create_table>"],
     # general_definitions
     # create_table_grammar
 }
