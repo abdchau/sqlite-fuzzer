@@ -71,11 +71,10 @@ class Fuzzer:
         # This function may be changed.
         # self.fuzzer = PGGCFuzzer(self.grammar)
         # self.fuzzer = FasterPGGCFuzzer(self.grammar)
-        self.fuzzer = EvenFasterPGGCFuzzer(self.grammar)
+        self.fuzzer = EvenFasterPGGCFuzzer(self.grammar, min_nonterminals=10, max_nonterminals=100)
 
     def fuzz_one_input(self) -> str:
         # This function should be implemented, but the signature may not change.
         fuzzed_input = self.fuzzer.fuzz()
-        # print(fuzzed_input)
         # grammar.md.print_vars()
         return fuzzed_input
