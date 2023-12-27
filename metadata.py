@@ -10,16 +10,11 @@ class MetaData:
     # global initialization
     def __init__(self) -> None:
         self.created_tables: Dict[str : TableData] = {}
-        self.table_columns = {}        # {table_name: [column_names]}
-        self.current_columns = []
-        self.current_primary_generated = False
-
         self.deleted_tables = set()
         self.input_fuzzed = 0
 
     # initialization for single fuzz generation
     def pre_start(self):
-        self.current_primary_generated = False
         self.current_table = TableData()
 
         # MUST RETURN FALSE
@@ -31,11 +26,15 @@ class MetaData:
 
         return args
 
+    def force_string_min_length(self, s, length, prob=1):
+        if random.uniform(0, 1) < prob:
+            for _ in range(0, length - len(s)):
+                s += random.choice(string.ascii_lowercase)
+        return s
+
     def add_created_table(self, *args):
         args = list(args)
-        if random.uniform(0, 1) < 0.9:
-            for _ in range(0, 3 - len(args[1])):
-                args[1] += random.choice(string.ascii_lowercase)
+        args[1] = self.force_string_min_length(args[1], 3, prob=0.9)
         
         self.current_table.set_name(args[1])
         if self.current_table.table_name not in self.created_tables.keys():
@@ -47,8 +46,18 @@ class MetaData:
         return args
 
     def add_column(self, args):
-        self.current_table.add_column(ColumnData(*args))
-        return args
+        """col_name, col_type, col_constraint"""
+        args = list(args)
+        args[0] = self.force_string_min_length(args[0], 3, prob=0.8)
+        if  self.current_table.has_primary_key:
+            if 'PRIMARY KEY' in args[2]:
+                args[2] = ''
+        elif random.uniform(0, 1) < 0.8:
+            args[2] = 'PRIMARY KEY'
+
+        col = ColumnData(*args)
+        self.current_table.add_column(col)
+        return tuple(args)
 
     def add_deleted_table(self, table):
         self.deleted_tables.add(table)
