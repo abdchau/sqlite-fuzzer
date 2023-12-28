@@ -21,10 +21,10 @@ class MetaData:
         return False
 
     # called after each fuzz generation
-    def post_start(self, *args):
+    def post_start(self, args):
         self.input_fuzzed += 1
 
-        return args
+        return args[0]
 
     def force_string_min_length(self, s, length, prob=1):
         if random.uniform(0, 1) < prob:
@@ -40,9 +40,9 @@ class MetaData:
         if self.current_table.table_name not in self.created_tables.keys():
             self.created_tables[args[1]] = copy.deepcopy(self.current_table)
 
-        if self.input_fuzzed > 9:
-            print(self.created_tables)
-            exit()
+        # if self.input_fuzzed > 9:
+        #     print(self.created_tables)
+        #     exit()
         return args
 
     def add_column(self, args):
