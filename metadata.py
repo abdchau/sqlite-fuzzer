@@ -86,9 +86,27 @@ class MetaData:
         if not self.created_tables:
             return ''
 
-        self.current_table: TableData = random.choice(list(self.created_tables.values()))
+        self.current_table = random.choice(list(self.created_tables.values()))
         col_str = ', '.join([c.column_name for c in self.current_table.columns])
         return f"{self.current_table.table_name}({col_str})"
+    
+    def get_values_for_cols(self):
+        if not self.current_table.table_name:
+            return ''
+
+        values = []
+        for column in self.current_table.columns:
+            value = None
+            if column.column_type in ['DOUBLE', 'REAL', 'PRECISION', 'FLOAT']:
+                value = random.choice(string.digits)+'.'+random.choice(string.digits)+random.choice(string.digits)
+            elif 'CHAR' in column.column_type or 'LOB' in column.column_type:
+                value = f"'{''.join([random.choice(string.ascii_letters) for i in range(2)])}'"
+            else:
+                value = random.choice(string.digits)+random.choice(string.digits)
+
+            values.append(value)
+
+        return ', '.join(values)
 
         
     def print_vars(self):

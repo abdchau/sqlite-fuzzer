@@ -12,7 +12,7 @@ md = MetaData()
 
 grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
-    "<stmt>": ["<create_table>", "<drop_table>", ("<insert_stmt>", opts(prob=0.1))],
+    "<stmt>": ["<create_table>", ("<drop_table>", opts(prob=0.0)), ("<insert_stmt>", opts(prob=0.3))],
     # general_definitions
     # create_table_grammar
 }
@@ -26,7 +26,7 @@ general_definitions = {
     "<if_not_exist>": [("", opts(prob=0.98)), "IF NOT EXISTS "],
     
     "<signed_number>": ["<sign><numeric_literal>"],
-    "<sign>": ["+", "-", ""],
+    "<sign>": ["+", "-", ("", opts(prob=0.95))],
     "<numeric_literal>": ["<digit><numeric_literal>", "<digit>"],
     "<digit>": [d for d in string.digits],
 }
@@ -38,7 +38,7 @@ create_table_grammar = {
     "<temp>": [ ("", opts(prob=0.95)), "TEMPORARY ", "TEMP "],
     "<table_columns_def>": [("<table_columns_def>,<table_column_def>", opts(prob=0.95)), "<table_column_def>"],
     "<table_column_def>": [("<string> <column_type> <column_constraint>", opts(post=lambda *args: md.add_column(args)))],
-    "<column_type>": ["INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED", "BIGINT", "INT2", "INT8", "CHARACTER(<signed_number>)", "VARCHAR(<signed_number>)", "VARYING", "CHARACTER(<signed_number>)", "NCHAR(<signed_number>)", "NATIVE", "CHARACTER(<signed_number>)", "NVARCHAR(<signed_number>)", "TEXT", "CLOB", "BLOB", "REAL", "DOUBLE", "DOUBLE", "PRECISION", "FLOAT", "NUMERIC", "DECIMAL(<signed_number>, <signed_number>)", "BOOLEAN", "DATE", "DATETIME"],
+    "<column_type>": ["INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED", "BIGINT", "INT2", "INT8", "CHARACTER(<signed_number>)", "VARCHAR(<signed_number>)", "VARYING", "CHARACTER(<signed_number>)", "NCHAR(<signed_number>)", "NATIVE", "CHARACTER(<signed_number>)", "NVARCHAR(<signed_number>)", "TEXT", "CLOB", "BLOB", "REAL", "DOUBLE", "PRECISION", "FLOAT", "NUMERIC", "DECIMAL(<signed_number>, <signed_number>)", "BOOLEAN", "DATE", "DATETIME"],
     # "<column_modifier>": [("", opts(prob=0.95)), "(<signed_number>)", "(<signed_number>,<signed_number>)"]
     "<column_constraint>": ["", "PRIMARY KEY", "NOT NULL", "UNIQUE"],
 }
@@ -51,10 +51,11 @@ drop_table_grammar = {
 grammar.update(drop_table_grammar)
 
 insert_stmt_grammar = {
-    "<insert_stmt>": ["INSERT <insert_failure> INTO <table_and_columns> VALUES"],
+    "<insert_stmt>": [("INSERT <insert_failure> INTO <table_and_columns> VALUES(<column_values>)", opts(order=[1,2,3]))],
     "<insert_failure>": [("", opts(prob=0.95)), "OR <failure>"],
     "<failure>": ["ABORT", "FAIL", "IGNORE", "REPLACE", "ROLLBACK"],
     "<table_and_columns>": [("this string is never used", opts(pre=lambda: md.construct_insert_table_cols()))],
+    "<column_values>": [("this string is never used", opts(pre=lambda: md.get_values_for_cols()))],
 }
 grammar.update(insert_stmt_grammar)
 
