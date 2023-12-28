@@ -12,7 +12,12 @@ md = MetaData()
 
 grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
-    "<stmt>": ["<create_table>", ("<drop_table>", opts(prob=0.35)), ("<insert_stmt>", opts(prob=0.3))],
+    "<stmt>": [
+        "<create_table>",
+        "<drop_table>",
+        ("<insert_stmt>", opts(prob=0.3)),
+        "<select_stmt>"
+    ],
     # general_definitions
     # create_table_grammar
 }
@@ -46,7 +51,7 @@ grammar.update(create_table_grammar)
 
 drop_table_grammar = {
     "<drop_table>": ["DROP TABLE <if_exist> <drop_table_name>;"],
-    "<drop_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.98, 0.8)))],
+    "<drop_table_name>": [("<table_name>", opts(pre=lambda: md.get_delete_table_name(0.999)))],
 }
 grammar.update(drop_table_grammar)
 
@@ -59,3 +64,8 @@ insert_stmt_grammar = {
 }
 grammar.update(insert_stmt_grammar)
 
+select_stmt_grammar = {
+    "<select_stmt>": ["SELECT * FROM <select_table_name>;"],
+    "<select_table_name>": [("<table_name>",opts(pre=lambda: md.hijack_table_name(0.999, 1)))]
+}
+grammar.update(select_stmt_grammar)

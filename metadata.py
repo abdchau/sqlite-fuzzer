@@ -86,9 +86,8 @@ class MetaData:
         if not self.created_tables:
             return ''
 
-        self.current_table: TableData = self.created_tables.pop(random.choice(list(self.created_tables.keys())))
+        self.current_table: TableData = random.choice(list(self.created_tables.values()))
         col_str = ', '.join([c.column_name for c in self.current_table.columns])
-        self.deleted_tables.add(self.current_table.table_name)
         return f"{self.current_table.table_name}({col_str})"
     
     def get_values_for_cols(self):
@@ -109,7 +108,16 @@ class MetaData:
 
         return ', '.join(values)
 
-        
+    def get_delete_table_name(self, prob):
+        if random.uniform(0, 1) > prob or not self.created_tables:
+            return False
+
+        self.current_table: TableData = self.created_tables.pop(random.choice(list(self.created_tables.keys())))
+        self.deleted_tables.add(self.current_table.table_name)
+
+        return self.current_table.table_name
+
+
     def print_vars(self):
         print(self.created_tables)
         print(self.deleted_tables)
