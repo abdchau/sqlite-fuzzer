@@ -12,7 +12,7 @@ md = MetaData()
 
 grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
-    "<stmt>": ["<create_table>", ("<drop_table>", opts(prob=0.0)), ("<insert_stmt>", opts(prob=0.3))],
+    "<stmt>": ["<create_table>", ("<drop_table>", opts(prob=0.35)), ("<insert_stmt>", opts(prob=0.3))],
     # general_definitions
     # create_table_grammar
 }

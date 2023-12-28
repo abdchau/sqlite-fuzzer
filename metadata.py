@@ -86,8 +86,9 @@ class MetaData:
         if not self.created_tables:
             return ''
 
-        self.current_table = random.choice(list(self.created_tables.values()))
+        self.current_table: TableData = self.created_tables.pop(random.choice(list(self.created_tables.keys())))
         col_str = ', '.join([c.column_name for c in self.current_table.columns])
+        self.deleted_tables.add(self.current_table.table_name)
         return f"{self.current_table.table_name}({col_str})"
     
     def get_values_for_cols(self):
