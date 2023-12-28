@@ -57,7 +57,7 @@ class MetaData:
 
         col = ColumnData(*args)
         self.current_table.add_column(col)
-        return tuple(args)
+        return "{} {} {}".format(*args)
 
     def add_deleted_table(self, table):
         self.deleted_tables.add(table)
@@ -74,12 +74,13 @@ class MetaData:
         else:
             return False
 
-    def hijack_table_name(self, prob):
+    def hijack_table_name(self, prob, created_prob):
         if random.uniform(0, 1) < prob:
-            if random.uniform(0, 1) < 0.5:
+            if random.uniform(0, 1) < created_prob:
                 return self.get_created_table(1)
             else:
                 return self.get_deleted_table(1)
+        return False
         
     def print_vars(self):
         print(self.created_tables)

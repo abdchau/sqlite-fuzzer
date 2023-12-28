@@ -12,16 +12,17 @@ md = MetaData()
 
 grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
-    "<stmt>": ["<create_table>"],
+    "<stmt>": ["<create_table>", "<drop_table>"],
     # general_definitions
     # create_table_grammar
 }
 
 general_definitions = {
-    "<table_name>":[("<string>", opts(pre=lambda: md.hijack_table_name(0.5)))],
+    "<table_name>": ["<string>"],
     "<string>": ["<letter>", "<letter><string>"],
     "<letter>": [c for c in string.ascii_lowercase[:15]],
 
+    "<if_exist>": [("", opts(prob=0.98)), "IF EXISTS "],
     "<if_not_exist>": [("", opts(prob=0.98)), "IF NOT EXISTS "],
     
     "<signed_number>": ["<sign><numeric_literal>"],
@@ -32,7 +33,8 @@ general_definitions = {
 grammar.update(general_definitions)
 
 create_table_grammar = {
-    "<create_table>" : [("CREATE <temp>TABLE <table_name> <if_not_exist>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<create_table>" : [("CREATE <temp>TABLE <create_table_name> <if_not_exist>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<create_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.05, 0.3)))],
     "<temp>": [ ("", opts(prob=0.95)), "TEMPORARY ", "TEMP "],
     "<table_columns_def>": [("<table_columns_def>,<table_column_def>", opts(prob=0.95)), "<table_column_def>"],
     "<table_column_def>": [("<string> <column_type> <column_constraint>", opts(post=lambda *args: md.add_column(args)))],
@@ -40,5 +42,10 @@ create_table_grammar = {
     # "<column_modifier>": [("", opts(prob=0.95)), "(<signed_number>)", "(<signed_number>,<signed_number>)"]
     "<column_constraint>": ["", "PRIMARY KEY", "NOT NULL", "UNIQUE"],
 }
-
 grammar.update(create_table_grammar)
+
+drop_table_grammar = {
+    "<drop_table>": ["DROP TABLE <if_exist> <drop_table_name>;"],
+    "<drop_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.98, 0.8)))],
+}
+grammar.update(drop_table_grammar)
