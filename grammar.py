@@ -12,7 +12,7 @@ md = MetaData()
 
 grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
-    "<stmt>": ["<create_table>", "<drop_table>"],
+    "<stmt>": ["<create_table>", "<drop_table>", ("<insert_stmt>", opts(prob=0.1))],
     # general_definitions
     # create_table_grammar
 }
@@ -49,3 +49,12 @@ drop_table_grammar = {
     "<drop_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.98, 0.8)))],
 }
 grammar.update(drop_table_grammar)
+
+insert_stmt_grammar = {
+    "<insert_stmt>": ["INSERT <insert_failure> INTO <table_and_columns> VALUES"],
+    "<insert_failure>": [("", opts(prob=0.95)), "OR <failure>"],
+    "<failure>": ["ABORT", "FAIL", "IGNORE", "REPLACE", "ROLLBACK"],
+    "<table_and_columns>": [("this string is never used", opts(pre=lambda: md.construct_insert_table_cols()))],
+}
+grammar.update(insert_stmt_grammar)
+

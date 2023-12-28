@@ -81,6 +81,15 @@ class MetaData:
             else:
                 return self.get_deleted_table(1)
         return False
+    
+    def construct_insert_table_cols(self):
+        if not self.created_tables:
+            return ''
+
+        self.current_table: TableData = random.choice(list(self.created_tables.values()))
+        col_str = ', '.join([c.column_name for c in self.current_table.columns])
+        return f"{self.current_table.table_name}({col_str})"
+
         
     def print_vars(self):
         print(self.created_tables)
