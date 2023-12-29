@@ -32,13 +32,20 @@ class MetaData:
                 s += random.choice(string.ascii_lowercase)
         return s
 
+    def post_table_name(self, args):
+        print('TABLE NAME', args)
+        # exit()
+        table_name = args[0]
+        table_name = self.force_string_min_length(table_name, 3)
+        return table_name
+
     def add_created_table(self, *args):
         args = list(args)
-        args[1] = self.force_string_min_length(args[1], 3, prob=0.9)
+        args[2] = self.force_string_min_length(args[2], 3, prob=0.9)
         
-        self.current_table.set_name(args[1])
+        self.current_table.set_name(args[2])
         if self.current_table.table_name not in self.created_tables.keys():
-            self.created_tables[args[1]] = copy.deepcopy(self.current_table)
+            self.created_tables[args[2]] = copy.deepcopy(self.current_table)
 
         # if self.input_fuzzed > 9:
         #     print(self.created_tables)
@@ -85,7 +92,7 @@ class MetaData:
     def construct_insert_table_cols(self):
         if not self.created_tables:
             return ''
-
+        print(self.created_tables)
         self.current_table: TableData = random.choice(list(self.created_tables.values()))
         col_str = ', '.join([c.column_name for c in self.current_table.columns])
         return f"{self.current_table.table_name}({col_str})"
@@ -123,11 +130,24 @@ class MetaData:
 
         self.current_table: TableData = random.choice(list(self.created_tables.values()))
 
-        num = random.randint(1, len(self.current_table.columns))
-        return ', '.join([c.column_name for c in self.current_table.columns[:num]]) if len(self.current_table.columns) > 0 else '*'
+        num = random.randint(1, max(1, len(self.current_table.columns)))
+        return ', '.join([c.column_name for c in self.current_table.columns[:]]) if len(self.current_table.columns) > 0 else '*'
 
     def get_select_table(self):
-        return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase)[:15] for i in range(3)])
+        return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])
+
+    def get_existing_table(self):
+        if self.created_tables:
+            self.current_table: TableData = random.choice(list(self.created_tables.values()))
+        return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])
+
+    def post_rename_table(self, new_name):
+        curr_name = self.current_table.table_name
+        if curr_name:
+            self.current_table.set_name(new_name)
+            self.created_tables[new_name] = self.current_table
+            del self.created_tables[curr_name]
+        return new_name
 
     def print_vars(self):
         print(self.created_tables)

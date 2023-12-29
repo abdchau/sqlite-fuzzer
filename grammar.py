@@ -17,13 +17,14 @@ grammar = {
         ("<drop_table>", opts(prob=0.1)),
         ("<insert_stmt>", opts(prob=0.4)),
         ("<select_stmt>", opts(prob=0.2)),
+        ("<alter_table>", opts(prob=0.15)),
     ],
     # general_definitions
     # create_table_grammar
 }
 
 general_definitions = {
-    "<table_name>": ["<string>"],
+    "<table_name>": [("<string>", opts(post=lambda *args: md.post_table_name(args)))],
     "<string>": ["<letter>", "<letter><string>"],
     "<letter>": [c for c in string.ascii_lowercase[:15]],
 
@@ -38,7 +39,7 @@ general_definitions = {
 grammar.update(general_definitions)
 
 create_table_grammar = {
-    "<create_table>" : [("CREATE <temp>TABLE <create_table_name> <if_not_exist>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
+    "<create_table>" : [("CREATE <temp>TABLE <if_not_exist><create_table_name>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
     "<create_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.05, 0.3)))],
     "<temp>": [ ("", opts(prob=0.9995)), "TEMPORARY ", "TEMP "],
     "<table_columns_def>": [("<table_columns_def>,<table_column_def>", opts(prob=0.95)), "<table_column_def>"],
@@ -70,3 +71,12 @@ select_stmt_grammar = {
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
 }
 grammar.update(select_stmt_grammar)
+
+alter_table_grammar = {
+    "<alter_table>": [("ALTER TABLE <alter_table_name> <alter_action>;", opts(order=[1,2]))],
+    "<alter_table_name>": [("<table_name>", opts(pre=lambda: md.get_existing_table()))],
+    "<alter_action>": ["<rename_table>"],#, "<rename_column>", "<add_column>", "<drop_column>"],
+    "<rename_table>": ["RENAME TO <rename_table_name>"],
+    "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))]
+}
+grammar.update(alter_table_grammar)
