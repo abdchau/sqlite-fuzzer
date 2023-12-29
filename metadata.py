@@ -117,6 +117,17 @@ class MetaData:
 
         return self.current_table.table_name
 
+    def get_select_columns(self):
+        if not self.created_tables:
+            return '*'
+
+        self.current_table: TableData = random.choice(list(self.created_tables.values()))
+
+        num = random.randint(1, len(self.current_table.columns))
+        return ', '.join([c.column_name for c in self.current_table.columns[:num]]) if len(self.current_table.columns) > 0 else '*'
+
+    def get_select_table(self):
+        return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase)[:15] for i in range(3)])
 
     def print_vars(self):
         print(self.created_tables)

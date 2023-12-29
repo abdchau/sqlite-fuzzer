@@ -14,9 +14,9 @@ grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
     "<stmt>": [
         "<create_table>",
-        "<drop_table>",
-        ("<insert_stmt>", opts(prob=0.3)),
-        "<select_stmt>"
+        ("<drop_table>", opts(prob=0.1)),
+        ("<insert_stmt>", opts(prob=0.4)),
+        ("<select_stmt>", opts(prob=0.2)),
     ],
     # general_definitions
     # create_table_grammar
@@ -40,7 +40,7 @@ grammar.update(general_definitions)
 create_table_grammar = {
     "<create_table>" : [("CREATE <temp>TABLE <create_table_name> <if_not_exist>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
     "<create_table_name>": [("<table_name>", opts(pre=lambda: md.hijack_table_name(0.05, 0.3)))],
-    "<temp>": [ ("", opts(prob=0.95)), "TEMPORARY ", "TEMP "],
+    "<temp>": [ ("", opts(prob=0.9995)), "TEMPORARY ", "TEMP "],
     "<table_columns_def>": [("<table_columns_def>,<table_column_def>", opts(prob=0.95)), "<table_column_def>"],
     "<table_column_def>": [("<string> <column_type> <column_constraint>", opts(post=lambda *args: md.add_column(args)))],
     "<column_type>": ["INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED", "BIGINT", "INT2", "INT8", "CHARACTER(<signed_number>)", "VARCHAR(<signed_number>)", "VARYING", "CHARACTER(<signed_number>)", "NCHAR(<signed_number>)", "NATIVE", "CHARACTER(<signed_number>)", "NVARCHAR(<signed_number>)", "TEXT", "CLOB", "BLOB", "REAL", "DOUBLE", "PRECISION", "FLOAT", "NUMERIC", "DECIMAL(<signed_number>, <signed_number>)", "BOOLEAN", "DATE", "DATETIME"],
@@ -65,7 +65,8 @@ insert_stmt_grammar = {
 grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
-    "<select_stmt>": ["SELECT * FROM <select_table_name>;"],
-    "<select_table_name>": [("<table_name>",opts(pre=lambda: md.hijack_table_name(0.999, 1)))]
+    "<select_stmt>": [("SELECT <select_columns> FROM <select_table_name>;", opts(order=[1,2]))],
+    "<select_columns>": [("columns; string overwritten", opts(pre=lambda: md.get_select_columns()))],
+    "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
 }
 grammar.update(select_stmt_grammar)
