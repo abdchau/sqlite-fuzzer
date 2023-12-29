@@ -18,12 +18,15 @@ grammar = {
         ("<insert_stmt>", opts(prob=0.3)),
         ("<select_stmt>", opts(prob=0.2)),
         ("<alter_table>", opts(prob=0.15)),
+        ("<delete_stmt>", opts(prob=0.05)),
     ],
     # general_definitions
     # create_table_grammar
 }
 
 general_definitions = {
+    "<existing_table_name>": [("<table_name>", opts(pre=lambda: md.get_existing_table()))],
+
     "<table_name>": [("<string>", opts(post=lambda *args: md.post_table_name(args)))],
     "<string>": ["<letter>", "<letter><string>"],
     "<letter>": [c for c in string.ascii_lowercase[:15]],
@@ -31,6 +34,10 @@ general_definitions = {
     "<if_exist>": [("", opts(prob=0.98)), "IF EXISTS "],
     "<if_not_exist>": [("", opts(prob=0.98)), "IF NOT EXISTS "],
     
+    "<limit_clause>": ["", "LIMIT <signed_number>"],
+    # "<order_by_clause>": ["", "ORDER BY <asc_desc>"],
+    # "<asc_desc>": ["ASC", "DESC"],
+
     "<signed_number>": ["<sign><numeric_literal>"],
     "<sign>": ["+", "-", ("", opts(prob=0.95))],
     "<numeric_literal>": ["<digit><numeric_literal>", "<digit>"],
@@ -66,15 +73,14 @@ insert_stmt_grammar = {
 grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
-    "<select_stmt>": [("SELECT <select_columns> FROM <select_table_name>;", opts(order=[1,2]))],
+    "<select_stmt>": [("SELECT <select_columns> FROM <select_table_name> <limit_clause>;", opts(order=[1,2,3]))],
     "<select_columns>": [("columns; string not used", opts(pre=lambda: md.get_select_columns()))],
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
 }
 grammar.update(select_stmt_grammar)
 
 alter_table_grammar = {
-    "<alter_table>": [("ALTER TABLE <alter_table_name> <alter_action>;", opts(order=[1,2]))],
-    "<alter_table_name>": [("<table_name>", opts(pre=lambda: md.get_existing_table()))],
+    "<alter_table>": [("ALTER TABLE <existing_table_name> <alter_action>;", opts(order=[1,2]))],
     "<alter_action>": ["<rename_table>", "<rename_column>", "<add_column>", "<drop_column>"],
     "<rename_table>": ["RENAME TO <rename_table_name>"],
     "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))],
@@ -85,3 +91,8 @@ alter_table_grammar = {
     "<just_column>": ["", "COLUMN"],
 }
 grammar.update(alter_table_grammar)
+
+delete_stmt_grammar = {
+    "<delete_stmt>": ["DELETE FROM <existing_table_name>;"],
+}
+grammar.update(delete_stmt_grammar)
