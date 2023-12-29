@@ -152,9 +152,12 @@ class MetaData:
         return new_name
 
     def rename_column_name(self, new_name):
-        col = random.choice(self.current_table.columns)
-        old_name = col.column_name
-        col.column_name = new_name
+        if self.current_table.table_name:
+            col = random.choice(self.current_table.columns)
+            old_name = col.column_name
+            col.column_name = new_name
+        else:
+            old_name = 'asdf'
 
         return f"RENAME COLUMN {old_name} TO {new_name}"
 
