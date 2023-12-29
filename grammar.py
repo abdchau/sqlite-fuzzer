@@ -75,10 +75,13 @@ grammar.update(select_stmt_grammar)
 alter_table_grammar = {
     "<alter_table>": [("ALTER TABLE <alter_table_name> <alter_action>;", opts(order=[1,2]))],
     "<alter_table_name>": [("<table_name>", opts(pre=lambda: md.get_existing_table()))],
-    "<alter_action>": ["<rename_table>", "<rename_column>", "<add_column>"],#, "<drop_column>"],
+    "<alter_action>": ["<rename_table>", "<rename_column>", "<add_column>", "<drop_column>"],
     "<rename_table>": ["RENAME TO <rename_table_name>"],
     "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))],
     "<rename_column>": [("RENAME COLUMN <string> TO <table_name>", opts(post=lambda *args: md.rename_column_name(args[1])))],
-    "<add_column>": ["ADD COLUMN <table_column_def>"],
+    "<add_column>": ["ADD <just_column> <table_column_def>"],
+    "<drop_column>": ["DROP <just_column> <drop_col_name>"],
+    "<drop_col_name>": [("column; string not used", opts(pre=lambda:md.drop_col_name()))],
+    "<just_column>": ["", "COLUMN"],
 }
 grammar.update(alter_table_grammar)

@@ -152,7 +152,7 @@ class MetaData:
         return new_name
 
     def rename_column_name(self, new_name):
-        if self.current_table.table_name:
+        if self.current_table.table_name and len(self.current_table.columns) > 0:
             col = random.choice(self.current_table.columns)
             old_name = col.column_name
             col.column_name = new_name
@@ -160,6 +160,20 @@ class MetaData:
             old_name = 'asdf'
 
         return f"RENAME COLUMN {old_name} TO {new_name}"
+
+    def drop_col_name(self):
+        satisfied = False
+        if self.current_table.table_name and len(self.current_table.columns) > 0:
+            while not satisfied:
+                col = random.choice(self.current_table.columns)
+                satisfied = True
+                if col.is_primary and (random.uniform(0,1) < 0.3 or len(self.current_table.columns) > 1):
+                    satisfied = False
+        else:
+            return 'adsff'
+
+        self.current_table.columns.remove(col)
+        return col.column_name
 
     def print_vars(self):
         print(self.created_tables)
