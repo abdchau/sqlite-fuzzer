@@ -20,7 +20,8 @@ grammar = {
         ("<alter_table>", opts(prob=0.15)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<explain_plan>", opts(prob=0.05)),
-        ("<create_view>", opts(prob=0.05)),
+        ("<create_view>", opts(prob=0.02)),
+        ("<drop_view>", opts(prob=0.02)),
     ],
     # general_definitions
     # create_table_grammar
@@ -107,6 +108,13 @@ explain_plan_grammar = {
 grammar.update(explain_plan_grammar)
 
 create_view_grammar = {
-    "<create_view>": ["CREATE VIEW <if_not_exist> <table_name> AS <select_stmt>"]
+    "<create_view>": ["CREATE VIEW <if_not_exist> <view_name> AS <select_stmt>"],
+    "<view_name>": [("<string>", opts(post=lambda *args: md.post_view_name(*args)))],
 }
 grammar.update(create_view_grammar)
+
+drop_view_grammar = {
+    "<drop_view>": ["DROP VIEW <if_exist> <existing_view_name>;"],
+    "<existing_view_name>": [("<view_name>", opts(pre=lambda: md.get_drop_view()))],
+}
+grammar.update(drop_view_grammar)

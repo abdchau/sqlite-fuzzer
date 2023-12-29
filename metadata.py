@@ -12,6 +12,7 @@ class MetaData:
     def __init__(self) -> None:
         self.created_tables: Dict[str : TableData] = {}
         self.deleted_tables = set()
+        self._created_views = set()
         self.input_fuzzed = 0
 
     # initialization for single fuzz generation
@@ -174,6 +175,18 @@ class MetaData:
 
         self.current_table.columns.remove(col)
         return col.column_name
+
+    def post_view_name(self, args):
+        name = self.post_table_name(args)
+        self._created_views.add(name)
+        return name
+
+    def get_drop_view(self):
+        if self._created_views:
+            view = random.choice(list(self._created_views))
+            self._created_views.remove(view)
+            return view
+        return False
 
     def print_vars(self):
         print(self.created_tables)
