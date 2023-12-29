@@ -1,6 +1,7 @@
 import string
 import random
 import copy
+import time
 
 from typing import Dict
 
@@ -16,6 +17,7 @@ class MetaData:
     # initialization for single fuzz generation
     def pre_start(self):
         self.current_table = TableData()
+        random.seed(time.time())
 
         # MUST RETURN FALSE
         return False
@@ -131,7 +133,7 @@ class MetaData:
         self.current_table: TableData = random.choice(list(self.created_tables.values()))
 
         num = random.randint(1, max(1, len(self.current_table.columns)))
-        return ', '.join([c.column_name for c in self.current_table.columns[:]]) if len(self.current_table.columns) > 0 else '*'
+        return ', '.join([c.column_name for c in self.current_table.columns[:num]]) if len(self.current_table.columns) > 0 else '*'
 
     def get_select_table(self):
         return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])
@@ -148,6 +150,13 @@ class MetaData:
             self.created_tables[new_name] = self.current_table
             del self.created_tables[curr_name]
         return new_name
+
+    def rename_column_name(self, new_name):
+        col = random.choice(self.current_table.columns)
+        old_name = col.column_name
+        col.column_name = new_name
+
+        return f"RENAME COLUMN {old_name} TO {new_name}"
 
     def print_vars(self):
         print(self.created_tables)

@@ -67,7 +67,7 @@ grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
     "<select_stmt>": [("SELECT <select_columns> FROM <select_table_name>;", opts(order=[1,2]))],
-    "<select_columns>": [("columns; string overwritten", opts(pre=lambda: md.get_select_columns()))],
+    "<select_columns>": [("columns; string not used", opts(pre=lambda: md.get_select_columns()))],
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
 }
 grammar.update(select_stmt_grammar)
@@ -75,8 +75,9 @@ grammar.update(select_stmt_grammar)
 alter_table_grammar = {
     "<alter_table>": [("ALTER TABLE <alter_table_name> <alter_action>;", opts(order=[1,2]))],
     "<alter_table_name>": [("<table_name>", opts(pre=lambda: md.get_existing_table()))],
-    "<alter_action>": ["<rename_table>"],#, "<rename_column>", "<add_column>", "<drop_column>"],
+    "<alter_action>": ["<rename_table>", "<rename_column>"],#, "<add_column>", "<drop_column>"],
     "<rename_table>": ["RENAME TO <rename_table_name>"],
-    "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))]
+    "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))],
+    "<rename_column>": [("RENAME COLUMN <string> TO <table_name>", opts(post=lambda *args: md.rename_column_name(args[1])))],
 }
 grammar.update(alter_table_grammar)
