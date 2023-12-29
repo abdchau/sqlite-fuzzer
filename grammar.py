@@ -15,10 +15,11 @@ grammar = {
     "<stmt>": [
         "<create_table>",
         ("<drop_table>", opts(prob=0.1)),
-        ("<insert_stmt>", opts(prob=0.3)),
-        ("<select_stmt>", opts(prob=0.2)),
+        ("<insert_stmt>", opts(prob=0.25)),
+        ("<select_stmt>", opts(prob=0.15)),
         ("<alter_table>", opts(prob=0.15)),
         ("<delete_stmt>", opts(prob=0.05)),
+        ("<explain_plan>", opts(prob=0.05)),
     ],
     # general_definitions
     # create_table_grammar
@@ -96,3 +97,10 @@ delete_stmt_grammar = {
     "<delete_stmt>": ["DELETE FROM <existing_table_name>;"],
 }
 grammar.update(delete_stmt_grammar)
+
+explain_plan_grammar = {
+    "<explain_plan>": ["EXPLAIN <query_plan> <stmt_to_explain>"],
+    "<query_plan>": ["", "QUERY PLAN"],
+    "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>"]
+}
+grammar.update(explain_plan_grammar)
