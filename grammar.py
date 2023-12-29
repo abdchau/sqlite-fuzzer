@@ -14,14 +14,16 @@ grammar = {
     "<start>": [("<stmt>", opts(pre=lambda: md.pre_start(), post=lambda *args: md.post_start(args)))],
     "<stmt>": [
         "<create_table>",
-        ("<drop_table>", opts(prob=0.1)),
-        ("<insert_stmt>", opts(prob=0.25)),
+        ("<drop_table>", opts(prob=0.10)),
+        ("<insert_stmt>", opts(prob=0.20)),
         ("<select_stmt>", opts(prob=0.15)),
         ("<alter_table>", opts(prob=0.15)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<explain_plan>", opts(prob=0.05)),
         ("<create_view>", opts(prob=0.02)),
         ("<drop_view>", opts(prob=0.02)),
+        ("<create_index>", opts(prob=0.02)),
+        ("<drop_index>", opts(prob=0.02)),
     ],
     # general_definitions
     # create_table_grammar
@@ -118,3 +120,18 @@ drop_view_grammar = {
     "<existing_view_name>": [("<view_name>", opts(pre=lambda: md.get_drop_view()))],
 }
 grammar.update(drop_view_grammar)
+
+create_index_grammar = {
+    "<create_index>": [("CREATE <unique> INDEX <if_not_exist> <index_name> ON <existing_table_name>(<indexed_columns>);", opts(order=[1,2,3,4,5]))],
+    "<unique>": [("", opts(prob=0.9)), "UNIQUE"],
+    "<index_name>": [("<string>", opts(post=lambda *args: md.post_index_name(*args)))],
+    "<indexed_columns>": [("<indexed_column>", opts(prob=0.9)), "<indexed_column>,<indexed_columns>"],
+    "<indexed_column>": [("string; unused", opts(pre=lambda: md.get_column_to_index()))]
+}
+grammar.update(create_index_grammar)
+
+drop_index_grammar = {
+    "<drop_index>": ["DROP INDEX <if_exist> <existing_index_name>;"],
+    "<existing_index_name>": [("<index_name>", opts(pre=lambda: md.get_drop_index()))],
+}
+grammar.update(drop_index_grammar)

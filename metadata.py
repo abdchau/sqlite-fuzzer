@@ -13,6 +13,7 @@ class MetaData:
         self.created_tables: Dict[str : TableData] = {}
         self.deleted_tables = set()
         self._created_views = set()
+        self._created_indices = set()
         self.input_fuzzed = 0
 
     # initialization for single fuzz generation
@@ -162,13 +163,13 @@ class MetaData:
 
         return f"RENAME COLUMN {old_name} TO {new_name}"
 
-    def drop_col_name(self):
+    def drop_col_name(self, primary_prob=0.3):
         satisfied = False
         if self.current_table.table_name and len(self.current_table.columns) > 0:
             while not satisfied:
                 col = random.choice(self.current_table.columns)
                 satisfied = True
-                if col.is_primary and (random.uniform(0,1) < 0.3 or len(self.current_table.columns) > 1):
+                if col.is_primary and random.uniform(0,1) < primary_prob and len(self.current_table.columns) > 1:
                     satisfied = False
         else:
             return 'adsff'
@@ -186,6 +187,21 @@ class MetaData:
             view = random.choice(list(self._created_views))
             self._created_views.remove(view)
             return view
+        return False
+
+    def post_index_name(self, args):
+        name = self.post_table_name(args)
+        self._created_indices.add(name)
+        return name
+
+    def get_column_to_index(self):
+        return self.drop_col_name(primary_prob=0.8)
+
+    def get_drop_index(self):
+        if self._created_indices:
+            index = random.choice(list(self._created_indices))
+            self._created_indices.remove(index)
+            return index
         return False
 
     def print_vars(self):
