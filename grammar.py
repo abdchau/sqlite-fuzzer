@@ -20,6 +20,7 @@ grammar = {
         ("<alter_table>", opts(prob=0.15)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<explain_plan>", opts(prob=0.05)),
+        ("<create_view>", opts(prob=0.05)),
     ],
     # general_definitions
     # create_table_grammar
@@ -104,3 +105,8 @@ explain_plan_grammar = {
     "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>"]
 }
 grammar.update(explain_plan_grammar)
+
+create_view_grammar = {
+    "<create_view>": ["CREATE VIEW <if_not_exist> <table_name> AS <select_stmt>"]
+}
+grammar.update(create_view_grammar)
