@@ -27,7 +27,9 @@ grammar = {
         ("<create_savepoint>", opts(prob=0.01)),
         ("<release_savepoint>", opts(prob=0.005)),
         ("<reindex_stmt>", opts(prob=0.005)),
+        ("<vacuum_stmt>", opts(prob=0.002)),
     ],
+    "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
     # create_table_grammar
 }
