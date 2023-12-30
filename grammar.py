@@ -33,6 +33,7 @@ grammar = {
         ("<comment>", opts(prob=0.001)),
         ("<analyze_stmt>", opts(prob=0.003)),
         ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
+        ("<pragma_stmt>", opts(prob=0.003)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -210,3 +211,10 @@ explain_plan_grammar = {
     
 }
 grammar.update(explain_plan_grammar)
+
+pragma_stmt_grammar = {
+    "<pragma_stmt>": [("PRAGMA <main_or_temp><pragma_name_and_value>;", opts(order=[1,2]))],
+    "<pragma_name_and_value>": [("string; not used", opts(pre=lambda: md.handle_pragma()))],
+    "<main_or_temp>": [("", opts(prob=0.9)), "main.", "temp."],
+}
+grammar.update(pragma_stmt_grammar)

@@ -6,6 +6,7 @@ import time
 from typing import Dict
 
 from tabledata import TableData, ColumnData
+from pragmas import pragmas
 
 class MetaData:
     # global initialization
@@ -291,6 +292,15 @@ class MetaData:
             self._created_triggers.remove(trigger)
             return trigger
         return False
+
+    def handle_pragma(self):
+        pragma = random.choice(list(pragmas.keys()))
+
+        pragma_str = f"{pragma}"
+        if random.uniform(0,1) < 0.5:
+            pragma_str += pragmas[pragma]()
+
+        return pragma_str
 
     def print_vars(self):
         print(self.created_tables)
