@@ -105,7 +105,8 @@ grammar.update(delete_stmt_grammar)
 explain_plan_grammar = {
     "<explain_plan>": ["EXPLAIN <query_plan> <stmt_to_explain>"],
     "<query_plan>": ["", "QUERY PLAN"],
-    "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>"]
+    "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>", "<create_view>", "<drop_view>", "<create_index>", "<drop_index>"],
+    
 }
 grammar.update(explain_plan_grammar)
 
