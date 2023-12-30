@@ -33,7 +33,7 @@ grammar = {
         ("<comment>", opts(prob=0.001)),
         ("<analyze_stmt>", opts(prob=0.003)),
         ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
-        ("<pragma_stmt>", opts(prob=0.003)),
+        ("<pragma_stmt>", opts(prob=0.01)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
