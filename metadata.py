@@ -15,6 +15,7 @@ class MetaData:
         self._created_views = set()
         self._created_indices = set()
         self._created_savepoints = []
+        self._created_triggers = []
         self.input_fuzzed = 0
 
     # initialization for single fuzz generation
@@ -195,7 +196,7 @@ class MetaData:
         st = st.replace('UNIQUE', '')
         return st
 
-    def drop_col_name(self, primary_prob=0.3):
+    def drop_col_name(self, primary_prob=0.3, drop=True):
         satisfied = False
         if self.current_table.table_name and len(self.current_table.columns) > 0:
             while not satisfied:
@@ -206,7 +207,8 @@ class MetaData:
         else:
             return 'adsff'
 
-        self.current_table.columns.remove(col)
+        if drop:
+            self.current_table.columns.remove(col)
         return col.column_name
 
     def drop_table_views(self):
@@ -238,7 +240,7 @@ class MetaData:
         return name
 
     def get_column_to_index(self):
-        return self.drop_col_name(primary_prob=0.8)
+        return self.drop_col_name(primary_prob=0.8, drop=False)
 
     def get_drop_index(self):
         if self._created_indices:
@@ -275,6 +277,20 @@ class MetaData:
 
         return f"{column.column_name}={value}"
 
+    def post_trigger_name(self, args):
+        name = self.post_table_name(args)
+        self._created_triggers.append(name)
+        return name
+
+    def get_of_col_name(self):
+        return self.drop_col_name(primary_prob=0.8, drop=False)
+
+    def get_drop_trigger(self):
+        if self._created_triggers:
+            trigger = random.choice(list(self._created_triggers))
+            self._created_triggers.remove(trigger)
+            return trigger
+        return False
 
     def print_vars(self):
         print(self.created_tables)

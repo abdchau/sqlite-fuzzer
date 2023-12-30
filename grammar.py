@@ -29,6 +29,8 @@ grammar = {
         ("<reindex_stmt>", opts(prob=0.005)),
         ("<vacuum_stmt>", opts(prob=0.002)),
         ("<update_stmt>", opts(prob=0.10)),
+        ("<create_trigger>", opts(prob=0.01)),
+        ("<drop_trigger>", opts(prob=0.005)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -75,7 +77,7 @@ drop_table_grammar = {
 grammar.update(drop_table_grammar)
 
 insert_stmt_grammar = {
-    "<insert_stmt>": [("INSERT <insert_failure> INTO <table_and_columns> VALUES(<column_values>)", opts(order=[1,2,3]))],
+    "<insert_stmt>": [("INSERT <insert_failure> INTO <table_and_columns> VALUES(<column_values>);", opts(order=[1,2,3]))],
     "<insert_failure>": [("", opts(prob=0.95)), "OR <failure>"],
     "<failure>": ["ABORT", "FAIL", "IGNORE", "REPLACE", "ROLLBACK"],
     "<table_and_columns>": [("this string is never used", opts(pre=lambda: md.construct_insert_table_cols()))],
@@ -123,7 +125,7 @@ explain_plan_grammar = {
 grammar.update(explain_plan_grammar)
 
 create_view_grammar = {
-    "<create_view>": ["CREATE VIEW <if_not_exist> <view_name> AS <select_stmt>"],
+    "<create_view>": ["CREATE VIEW <if_not_exist> <view_name> AS <select_stmt>;"],
     "<view_name>": [("<string>", opts(post=lambda *args: md.post_view_name(*args)))],
 }
 grammar.update(create_view_grammar)
@@ -150,7 +152,7 @@ drop_index_grammar = {
 grammar.update(drop_index_grammar)
 
 reindex_stmt_grammar = {
-    "<reindex_stmt>": ["REINDEX <reindex_name>"],
+    "<reindex_stmt>": ["REINDEX <reindex_name>;"],
     "<reindex_name>": ["<existing_table_name>", "<existing_index_name>"],
 }
 grammar.update(reindex_stmt_grammar)
@@ -171,3 +173,25 @@ update_stmt_grammar = {
     "<set_column>": [("string; not used", opts(pre=lambda: md.get_set_column()))]
 }
 grammar.update(update_stmt_grammar)
+
+create_trigger_grammar = {
+    "<create_trigger>":  # existing_table_name MUST expand first
+        [("CREATE TRIGGER <if_not_exist> <trigger_name> <when_trigger> <trigger_operation> ON <existing_table_name> " +
+          "<for_each_row> BEGIN <crud_stmts> END;",
+          opts(order=[2,3,4,5,1,6,7]))],
+    "<trigger_name>": [("<string>", opts(post=lambda *args: md.post_trigger_name(*args)))],
+    "<when_trigger>": ["", "BEFORE", "AFTER"],#, "INSTEAD OF"],
+    "<trigger_operation>": ["DELETE", "INSERT", "UPDATE <of_column>"],
+    "<of_column>": ["", "OF <of_col_name>"],
+    "<of_col_name>": [("string; not used", opts(pre=lambda: md.get_of_col_name()))],
+    "<for_each_row>": ["", "FOR EACH ROW"],
+    "<crud_stmts>": ["<crud_stmt>", "<crud_stmt><crud_stmts>"],
+    "<crud_stmt>": ["<insert_stmt>", "<select_stmt>", "<delete_stmt>", "<update_stmt>"]
+}
+grammar.update(create_trigger_grammar)
+
+drop_trigger_grammar = {
+    "<drop_trigger>": ["DROP TRIGGER <if_exist> <existing_trigger_name>;"],
+    "<existing_trigger_name>": [("<table_name>", opts(pre=lambda: md.get_drop_trigger()))],
+}
+grammar.update(drop_trigger_grammar)
