@@ -24,6 +24,8 @@ grammar = {
         ("<drop_view>", opts(prob=0.02)),
         ("<create_index>", opts(prob=0.02)),
         ("<drop_index>", opts(prob=0.02)),
+        ("<create_savepoint>", opts(prob=0.01)),
+        ("<release_savepoint>", opts(prob=0.005)),
     ],
     # general_definitions
     # create_table_grammar
@@ -136,3 +138,13 @@ drop_index_grammar = {
     "<existing_index_name>": [("<index_name>", opts(pre=lambda: md.get_drop_index()))],
 }
 grammar.update(drop_index_grammar)
+
+save_point_grammar = {
+    "<create_savepoint>": ["SAVEPOINT <savepoint_name>;"],
+    "<savepoint_name>": [("<string>", opts(post=lambda *args: md.post_savepoint_name(*args)))],
+
+    "<release_savepoint>": ["RELEASE <savepoint> <existing_savepoint_name>;"],
+    "<savepoint>": ["", "SAVEPOINT"],
+    "<existing_savepoint_name>": [("<savepoint_name>", opts(pre=lambda: md.get_release_savepoint()))],
+}
+grammar.update(save_point_grammar)

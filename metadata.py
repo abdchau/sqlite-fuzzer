@@ -14,6 +14,7 @@ class MetaData:
         self.deleted_tables = set()
         self._created_views = set()
         self._created_indices = set()
+        self._created_savepoints = []
         self.input_fuzzed = 0
 
     # initialization for single fuzz generation
@@ -202,6 +203,20 @@ class MetaData:
             index = random.choice(list(self._created_indices))
             self._created_indices.remove(index)
             return index
+        return False
+
+    def post_savepoint_name(self, args):
+        name = self.post_table_name(args)
+        self._created_savepoints.append(name)
+        return name
+
+    def get_release_savepoint(self):
+        if self._created_savepoints:
+            idx = random.randint(0, len(self._created_savepoints) - 1)
+            print(self._created_savepoints, idx)
+            savepoint = self._created_savepoints[idx]
+            self._created_savepoints = self._created_savepoints[:idx]
+            return savepoint
         return False
 
     def print_vars(self):
