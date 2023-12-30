@@ -19,7 +19,6 @@ grammar = {
         ("<select_stmt>", opts(prob=0.125)),
         ("<alter_table>", opts(prob=0.125)),
         ("<delete_stmt>", opts(prob=0.05)),
-        ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
         ("<create_view>", opts(prob=0.003, post=lambda *args: md.post_create_view(args))),
         ("<drop_view>", opts(prob=0.001)),
         ("<create_index>", opts(prob=0.02)),
@@ -33,6 +32,7 @@ grammar = {
         ("<drop_trigger>", opts(prob=0.005)),
         ("<comment>", opts(prob=0.001)),
         ("<analyze_stmt>", opts(prob=0.003)),
+        ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -118,14 +118,6 @@ delete_stmt_grammar = {
 }
 grammar.update(delete_stmt_grammar)
 
-explain_plan_grammar = {
-    "<explain_plan>": ["EXPLAIN <query_plan> <stmt_to_explain>"],
-    "<query_plan>": ["", "QUERY PLAN"],
-    "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>", "<create_view>", "<drop_view>", "<create_index>", "<drop_index>"],
-    
-}
-grammar.update(explain_plan_grammar)
-
 create_view_grammar = {
     "<create_view>": ["CREATE VIEW <if_not_exist> <view_name> AS <select_stmt>;"],
     "<view_name>": [("<string>", opts(post=lambda *args: md.post_view_name(*args)))],
@@ -210,3 +202,11 @@ analyze_stmt_grammar = {
     "<symbol_to_analyze>": [("main", opts(prob=0.1)), "<existing_table_name>", "<existing_index_name>"],
 }
 grammar.update(analyze_stmt_grammar)
+
+explain_plan_grammar = {
+    "<explain_plan>": ["EXPLAIN <query_plan> <stmt_to_explain>"],
+    "<query_plan>": ["", "QUERY PLAN"],
+    "<stmt_to_explain>": ["<create_table>", "<drop_table>", "<insert_stmt>", "<select_stmt>", "<alter_table>", "<delete_stmt>", "<create_view>", "<drop_view>", "<create_index>", "<drop_index>", "<create_savepoint>", "<release_savepoint>", "<reindex_stmt>", "<vacuum_stmt>", "<update_stmt>", "<create_trigger>", "<drop_trigger>", "<comment>", "<analyze_stmt>"],
+    
+}
+grammar.update(explain_plan_grammar)
