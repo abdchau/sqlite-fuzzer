@@ -31,6 +31,7 @@ grammar = {
         ("<update_stmt>", opts(prob=0.10)),
         ("<create_trigger>", opts(prob=0.01)),
         ("<drop_trigger>", opts(prob=0.005)),
+        ("<comment>", opts(prob=0.001)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -195,3 +196,10 @@ drop_trigger_grammar = {
     "<existing_trigger_name>": [("<table_name>", opts(pre=lambda: md.get_drop_trigger()))],
 }
 grammar.update(drop_trigger_grammar)
+
+comment_grammar = {
+    "<comment>": ["<c_style_comment>", "<dash_comment>"],
+    "<c_style_comment>": ["/*<string*/"],
+    "<dash_comment>": ["--<string>\n"]
+}
+grammar.update(comment_grammar)
