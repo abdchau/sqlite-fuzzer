@@ -32,6 +32,7 @@ grammar = {
         ("<create_trigger>", opts(prob=0.01)),
         ("<drop_trigger>", opts(prob=0.005)),
         ("<comment>", opts(prob=0.001)),
+        ("<analyze_stmt>", opts(prob=0.003)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -203,3 +204,9 @@ comment_grammar = {
     "<dash_comment>": ["--<string>\n"]
 }
 grammar.update(comment_grammar)
+
+analyze_stmt_grammar = {
+    "<analyze_stmt>": ["ANALYZE <symbol_to_analyze>;"],
+    "<symbol_to_analyze>": [("main", opts(prob=0.1)), "<existing_table_name>", "<existing_index_name>"],
+}
+grammar.update(analyze_stmt_grammar)
