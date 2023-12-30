@@ -6,7 +6,7 @@ import time
 from typing import Dict
 
 from tabledata import TableData, ColumnData
-from pragmas import pragmas
+from pragmas import pragmas, pragmas_that_need_schemas
 
 class MetaData:
     # global initialization
@@ -25,6 +25,7 @@ class MetaData:
         random.seed(time.time())
 
         self.is_explain = False
+        self._need_schema_for_pragma = False
 
         # MUST RETURN FALSE
         return False
@@ -250,6 +251,13 @@ class MetaData:
             return index
         return False
 
+    def get_existing_index(self):
+        if self._created_indices:
+            index = random.choice(list(self._created_indices))
+            # self._created_indices.remove(index)
+            return index
+        return 'False'
+
     def post_savepoint_name(self, args):
         name = self.post_table_name(args)
         self._created_savepoints.append(name)
@@ -295,12 +303,31 @@ class MetaData:
 
     def handle_pragma(self):
         pragma = random.choice(list(pragmas.keys()))
+        if pragma in pragmas_that_need_schemas:
+            self._need_schema_for_pragma = True
 
         pragma_str = f"{pragma}"
-        if random.uniform(0,1) < 0.5:
+        if random.uniform(0,1) < 0.8:
             pragma_str += pragmas[pragma]()
-
+            if pragma == 'index_info':
+                pragma_str.replace('___', self.get_existing_index())
+            elif pragma == 'index_list':
+                pragma_str.replace('___', self.get_existing_table())
+            elif pragma == 'index_xinfo':
+                pragma_str.replace('___', self.get_existing_index())
+            elif pragma == 'integrity_check':
+                pragma_str.replace('___', self.get_existing_table())
+            elif pragma == 'quick_check':
+                pragma_str.replace('___', self.get_existing_table())
+            elif pragma == 'table_info' or pragma == 'table_list' or pragma == 'table_xinfo':
+                pragma_str.replace('___', self.get_existing_table())
+            else:
+                pass
         return pragma_str
+    
+    def check_need_schema(self):
+        if self._need_schema_for_pragma:
+            return 'main.'
 
     def print_vars(self):
         print(self.created_tables)
