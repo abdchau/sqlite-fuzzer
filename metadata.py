@@ -181,6 +181,10 @@ class MetaData:
 
         return f"RENAME COLUMN {old_name} TO {new_name}"
 
+    def post_add_column(self, st: str):
+        st = st.replace('UNIQUE', '')
+        return st
+
     def drop_col_name(self, primary_prob=0.3):
         satisfied = False
         if self.current_table.table_name and len(self.current_table.columns) > 0:
