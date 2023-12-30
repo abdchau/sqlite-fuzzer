@@ -241,6 +241,21 @@ class MetaData:
             return savepoint
         return False
 
+    def get_set_column(self):
+        if not self.current_table.columns:
+            return 'asdf=13'
+        column = random.choice(self.current_table.columns)
+        value = None
+        if column.column_type in ['DOUBLE', 'REAL', 'PRECISION', 'FLOAT']:
+            value = random.choice(string.digits)+'.'+random.choice(string.digits)+random.choice(string.digits)
+        elif 'CHAR' in column.column_type or 'LOB' in column.column_type:
+            value = f"'{''.join([random.choice(string.ascii_letters) for i in range(2)])}'"
+        else:
+            value = random.choice(string.digits)+random.choice(string.digits)
+
+        return f"{column.column_name}={value}"
+
+
     def print_vars(self):
         print(self.created_tables)
         print(self.deleted_tables)

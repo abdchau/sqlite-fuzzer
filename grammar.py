@@ -16,8 +16,8 @@ grammar = {
         "<create_table>",
         ("<drop_table>", opts(prob=0.10)),
         ("<insert_stmt>", opts(prob=0.20)),
-        ("<select_stmt>", opts(prob=0.15)),
-        ("<alter_table>", opts(prob=0.15)),
+        ("<select_stmt>", opts(prob=0.125)),
+        ("<alter_table>", opts(prob=0.125)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
         ("<create_view>", opts(prob=0.003)),
@@ -28,6 +28,7 @@ grammar = {
         ("<release_savepoint>", opts(prob=0.005)),
         ("<reindex_stmt>", opts(prob=0.005)),
         ("<vacuum_stmt>", opts(prob=0.002)),
+        ("<update_stmt>", opts(prob=0.10)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -63,7 +64,7 @@ create_table_grammar = {
     "<table_column_def>": [("<string> <column_type> <column_constraint>", opts(post=lambda *args: md.add_column(args)))],
     "<column_type>": ["INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED", "BIGINT", "INT2", "INT8", "CHARACTER(<signed_number>)", "VARCHAR(<signed_number>)", "VARYING", "CHARACTER(<signed_number>)", "NCHAR(<signed_number>)", "NATIVE", "CHARACTER(<signed_number>)", "NVARCHAR(<signed_number>)", "TEXT", "CLOB", "BLOB", "REAL", "DOUBLE", "PRECISION", "FLOAT", "NUMERIC", "DECIMAL(<signed_number>, <signed_number>)", "BOOLEAN", "DATE", "DATETIME"],
     # "<column_modifier>": [("", opts(prob=0.95)), "(<signed_number>)", "(<signed_number>,<signed_number>)"]
-    "<column_constraint>": ["", "PRIMARY KEY", "NOT NULL", "UNIQUE"],
+    "<column_constraint>": ["", "PRIMARY KEY", "NOT NULL", ("UNIQUE", opts(prob=0.05))],
 }
 grammar.update(create_table_grammar)
 
@@ -158,3 +159,10 @@ save_point_grammar = {
     "<existing_savepoint_name>": [("<savepoint_name>", opts(pre=lambda: md.get_release_savepoint()))],
 }
 grammar.update(save_point_grammar)
+
+update_stmt_grammar = {
+    "<update_stmt>": [("UPDATE <insert_failure> <existing_table_name> SET <set_columns>;", opts(order=[1,2,3]))],
+    "<set_columns>": [("<set_column>", opts(prob=0.95)), "<set_column>, <set_column>"],
+    "<set_column>": [("string; not used", opts(pre=lambda: md.get_set_column()))]
+}
+grammar.update(update_stmt_grammar)

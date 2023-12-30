@@ -5,6 +5,7 @@ class ColumnData:
         self.column_name = column_name
         self.column_type = column_type
         self.is_primary = 'PRIMARY KEY' in constraint
+        self.is_nullable = not ('NOT NULL' in constraint)
         self.constraint = constraint
     
     def __repr__(self) -> str:
