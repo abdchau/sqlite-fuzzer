@@ -20,7 +20,7 @@ grammar = {
         ("<alter_table>", opts(prob=0.125)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
-        ("<create_view>", opts(prob=0.003)),
+        ("<create_view>", opts(prob=0.003, post=lambda *args: md.post_create_view(args))),
         ("<drop_view>", opts(prob=0.001)),
         ("<create_index>", opts(prob=0.02)),
         ("<drop_index>", opts(prob=0.02)),
@@ -64,7 +64,7 @@ create_table_grammar = {
     "<table_column_def>": [("<string> <column_type> <column_constraint>", opts(post=lambda *args: md.add_column(args)))],
     "<column_type>": ["INT", "INTEGER", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED", "BIGINT", "INT2", "INT8", "CHARACTER(<signed_number>)", "VARCHAR(<signed_number>)", "VARYING", "CHARACTER(<signed_number>)", "NCHAR(<signed_number>)", "NATIVE", "CHARACTER(<signed_number>)", "NVARCHAR(<signed_number>)", "TEXT", "CLOB", "BLOB", "REAL", "DOUBLE", "PRECISION", "FLOAT", "NUMERIC", "DECIMAL(<signed_number>, <signed_number>)", "BOOLEAN", "DATE", "DATETIME"],
     # "<column_modifier>": [("", opts(prob=0.95)), "(<signed_number>)", "(<signed_number>,<signed_number>)"]
-    "<column_constraint>": ["", "PRIMARY KEY", "NOT NULL", ("UNIQUE", opts(prob=0.05))],
+    "<column_constraint>": [("", opts(prob=0.85)), "PRIMARY KEY", ("NOT NULL", opts(prob=0.05)), ("UNIQUE", opts(prob=0.05))],
 }
 grammar.update(create_table_grammar)
 
@@ -91,16 +91,21 @@ select_stmt_grammar = {
 grammar.update(select_stmt_grammar)
 
 alter_table_grammar = {
-    "<alter_table>": [("ALTER TABLE <existing_table_name> <alter_action>;", opts(order=[1,2]))],
+    "<alter_table>": ["<alter_table_1>", ("<alter_table_1><drop_table_views>", opts(order=[1,2],prob=0.98))],
+    "<alter_table_1>": [("ALTER TABLE <existing_table_name> <alter_action>;", opts(order=[1,2]))],
+
     "<alter_action>": ["<rename_table>", "<rename_column>", "<add_column>", "<drop_column>"],
     "<rename_table>": ["RENAME TO <rename_table_name>"],
     "<rename_table_name>": [("<table_name>", opts(post=lambda *args: md.post_rename_table(args[0])))],
     "<rename_column>": [("RENAME COLUMN <string> TO <table_name>", opts(post=lambda *args: md.rename_column_name(args[1])))],
     "<add_column>": [("ADD <just_column> <alter_col_def>")],
+    
     "<alter_col_def>": [("<table_column_def>", opts(post=lambda *args: md.post_add_column(*args)))],
     "<drop_column>": ["DROP <just_column> <drop_col_name>"],
     "<drop_col_name>": [("column; string not used", opts(pre=lambda:md.drop_col_name()))],
     "<just_column>": ["", "COLUMN"],
+
+    "<drop_table_views>": [("string; not used", opts(pre=lambda: md.drop_table_views()))],
 }
 grammar.update(alter_table_grammar)
 

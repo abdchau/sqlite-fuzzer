@@ -41,6 +41,15 @@ class MetaData:
 
         return args[0]
     
+    def post_create_view(self, args):
+        print('POST CREATE VIEW', args, self.current_table)
+        if self.current_table.table_name:
+            print('PRINTING', self.new_view)
+            # exit()
+            self.current_table.associated_views.append(self.new_view)
+
+        return args[0]
+
     def pre_explain_plan(self):
         self.is_explain = True
         self._created_tables_copy = copy.deepcopy(self.created_tables)
@@ -200,9 +209,20 @@ class MetaData:
         self.current_table.columns.remove(col)
         return col.column_name
 
+    def drop_table_views(self):
+        if not self.current_table.columns:
+            return ''
+
+        # chaining commands according to fair use policy: https://cms.cispa.saarland/askbot/fuzzing2324/question/415/project-1-fuzz_one_input-should-generate-only-one-sqlite-command/
+        drops = ''.join([f"DROP VIEW {view};" for view in self.current_table.associated_views])
+        print('PRINTING DROP', drops)
+        # exit()
+        return drops
+
     def post_view_name(self, args):
         name = self.post_table_name(args)
         self._created_views.add(name)
+        self.new_view = name
         return name
 
     def get_drop_view(self):

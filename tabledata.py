@@ -16,6 +16,7 @@ class TableData:
         self.table_name: str = None
         self.columns: List[ColumnData] = []
         self.has_primary_key = False
+        self.associated_views = []
 
     def set_name(self, name):
         self.table_name = name
