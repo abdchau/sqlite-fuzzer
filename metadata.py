@@ -22,6 +22,8 @@ class MetaData:
         self.current_table = TableData()
         random.seed(time.time())
 
+        self.is_explain = False
+
         # MUST RETURN FALSE
         return False
 
@@ -29,7 +31,22 @@ class MetaData:
     def post_start(self, args):
         self.input_fuzzed += 1
 
+        if self.is_explain:
+            self.created_tables: copy.deepcopy(self._created_tables_copy)
+            self.deleted_tables = copy.deepcopy(self._deleted_tables_copy)
+            self._created_views = copy.deepcopy(self._created_views_copy)
+            self._created_indices = copy.deepcopy(self._created_indices_copy)
+            self._created_savepoints = copy.deepcopy(self._created_savepoints_copy)
+
         return args[0]
+    
+    def pre_explain_plan(self):
+        self.is_explain = True
+        self._created_tables_copy: copy.deepcopy(self.created_tables)
+        self._deleted_tables_copy = copy.deepcopy(self.deleted_tables)
+        self._created_views_copy = copy.deepcopy(self._created_views)
+        self._created_indices_copy = copy.deepcopy(self._created_indices)
+        self._created_savepoints_copy = copy.deepcopy(self._created_savepoints)
 
     def force_string_min_length(self, s, length, prob=1):
         if random.uniform(0, 1) < prob:

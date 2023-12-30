@@ -19,7 +19,7 @@ grammar = {
         ("<select_stmt>", opts(prob=0.15)),
         ("<alter_table>", opts(prob=0.15)),
         ("<delete_stmt>", opts(prob=0.05)),
-        ("<explain_plan>", opts(prob=0.05)),
+        ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
         ("<create_view>", opts(prob=0.02)),
         ("<drop_view>", opts(prob=0.02)),
         ("<create_index>", opts(prob=0.02)),
