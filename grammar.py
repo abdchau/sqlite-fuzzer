@@ -15,9 +15,9 @@ grammar = {
     "<stmt>": [
         "<create_table>",
         ("<drop_table>", opts(prob=0.10)),
-        ("<insert_stmt>", opts(prob=0.20)),
-        ("<select_stmt>", opts(prob=0.125)),
-        ("<alter_table>", opts(prob=0.125)),
+        ("<insert_stmt>", opts(prob=0.15)),
+        ("<select_stmt>", opts(prob=0.175)),
+        ("<alter_table>", opts(prob=0.10)),
         ("<delete_stmt>", opts(prob=0.05)),
         ("<create_view>", opts(prob=0.003, post=lambda *args: md.post_create_view(args))),
         ("<drop_view>", opts(prob=0.001)),
@@ -32,8 +32,8 @@ grammar = {
         ("<drop_trigger>", opts(prob=0.005)),
         ("<comment>", opts(prob=0.001)),
         ("<analyze_stmt>", opts(prob=0.003)),
-        ("<explain_plan>", opts(prob=0.05, pre=lambda: md.pre_explain_plan())),
-        ("<pragma_stmt>", opts(prob=0.05)),
+        ("<explain_plan>", opts(prob=0.07, pre=lambda: md.pre_explain_plan())),
+        ("<pragma_stmt>", opts(prob=0.08)),
     ],
     "<vacuum_stmt>": ["VACUUM main;"]
     # general_definitions
@@ -54,12 +54,45 @@ general_definitions = {
     # "<order_by_clause>": ["", "ORDER BY <asc_desc>"],
     # "<asc_desc>": ["ASC", "DESC"],
 
+    "<literal_value>":["<numeric_literal>", "<string_literal>", "<blob_literal>", "NULL", "TRUE",
+                       "FALSE", "CURRENT_TIME", "CURRENT_DATE", "CURRENT_TIMESTAMP"],
+
     "<signed_number>": ["<sign><numeric_literal>"],
     "<sign>": ["+", "-", ("", opts(prob=0.95))],
     "<numeric_literal>": ["<digit><numeric_literal>", "<digit>"],
     "<digit>": [d for d in string.digits],
+
+    "<blob_literal>": ["X<numeric_literal>"],
+    "<string_literal>": ["'<string>'"],
+
+    "<is_null>": ["", "ISNULL"],
+    "<notnull>": ["", "NOTNULL"],
+    "<not>": ["", "NOT"],
+    "<null>": ["", "NULL"],
+    # "<is>": ["", "IS"],
+    "<distinct>": ["", "DISTINCT"],
+    "<distinct_from>": ["", "DISTINCT FROM"],
+
+    "<binary_operator>": ["+", "-", "*", "/", "%"]
 }
 grammar.update(general_definitions)
+
+expression_grammar = {
+    "<expr>": ["<expression> <expr_suffix>"],
+    "<expression>": ["<literal_value>", "(<expressions>)", "<expr_table_name><expr_column_name>", "<expr_binary_op>",
+                     "<expr_not_distinct>", "<expr_not_between>"],
+    "<expressions>": ["<expr>", "<expr>,<expressions>"],
+
+    "<expr_binary_op>": ["<expr> <binary_operator> <expr>"],
+    "<expr_not_distinct>": ["<expr> IS <not> <distinct_from> <expr>"],
+    "<expr_not_between>": ["<expr> <not> BETWEEN <expr> AND <expr>"],
+
+    "<expr_suffix>": ["<is_null>", "<notnull>", "<not> <null>"],
+    "<expr_table_name>": ["", "<existing_table_name>."],
+    "<expr_column_name>": ["", "<existing_column_name>"],
+    "<existing_column_name>": [("<string>", opts(pre=lambda: md.get_existing_column()))]
+}
+grammar.update(expression_grammar)
 
 create_table_grammar = {
     "<create_table>" : [("CREATE <temp>TABLE <if_not_exist><create_table_name>(<table_columns_def>);", opts(post=lambda *args: md.add_created_table(*args)))],
@@ -89,9 +122,10 @@ insert_stmt_grammar = {
 grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
-    "<select_stmt>": [("SELECT <select_columns> FROM <select_table_name> <limit_clause>;", opts(order=[1,2,3]))],
+    "<select_stmt>": [("SELECT <distinct> <select_columns> FROM <select_table_name> <where_clause> <limit_clause>;", opts(order=[1,2,3,4,5]))],
     "<select_columns>": [("columns; string not used", opts(pre=lambda: md.get_select_columns()))],
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
+    "<where_clause>": ["", "WHERE <expr>"],
 }
 grammar.update(select_stmt_grammar)
 

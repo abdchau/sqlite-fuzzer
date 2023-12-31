@@ -176,6 +176,9 @@ class MetaData:
             self.current_table: TableData = random.choice(list(self.created_tables.values()))
         return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])
 
+    def get_existing_column(self):
+        return random.choice(self.current_table.columns).column_name if self.current_table.columns else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])
+
     def post_rename_table(self, new_name):
         curr_name = self.current_table.table_name
         if curr_name:
