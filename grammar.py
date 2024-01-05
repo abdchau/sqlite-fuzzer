@@ -116,14 +116,14 @@ insert_stmt_grammar = {
     "<insert_stmt>": [("INSERT <insert_failure> INTO <table_and_columns> VALUES(<column_values>);", opts(order=[1,2,3]))],
     "<insert_failure>": [("", opts(prob=0.95)), "OR <failure>"],
     "<failure>": ["ABORT", "FAIL", "IGNORE", "REPLACE", "ROLLBACK"],
-    "<table_and_columns>": [("this string is never used", opts(pre=lambda: md.construct_insert_table_cols()))],
-    "<column_values>": [("this string is never used", opts(pre=lambda: md.get_values_for_cols()))],
+    "<table_and_columns>": [("<string>", opts(pre=lambda: md.construct_insert_table_cols()))],
+    "<column_values>": [("<string>", opts(pre=lambda: md.get_values_for_cols()))],
 }
 grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
     "<select_stmt>": [("SELECT <distinct> <select_columns> FROM <select_table_name> <where_clause> <limit_clause>;", opts(order=[1,2,3,4,5]))],
-    "<select_columns>": [("columns; string not used", opts(pre=lambda: md.get_select_columns()))],
+    "<select_columns>": [("<string>", opts(pre=lambda: md.get_select_columns()))],
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
     "<where_clause>": ["", "WHERE <expr>"],
 }
@@ -141,10 +141,10 @@ alter_table_grammar = {
     
     "<alter_col_def>": [("<table_column_def>", opts(post=lambda *args: md.post_add_column(*args)))],
     "<drop_column>": ["DROP <just_column> <drop_col_name>"],
-    "<drop_col_name>": [("column; string not used", opts(pre=lambda:md.drop_col_name()))],
+    "<drop_col_name>": [("<string>", opts(pre=lambda:md.drop_col_name()))],
     "<just_column>": ["", "COLUMN"],
 
-    "<drop_table_views>": [("string; not used", opts(pre=lambda: md.drop_table_views()))],
+    "<drop_table_views>": [("<string>", opts(pre=lambda: md.drop_table_views()))],
 }
 grammar.update(alter_table_grammar)
 
@@ -170,7 +170,7 @@ create_index_grammar = {
     "<unique>": [("", opts(prob=0.9)), "UNIQUE"],
     "<index_name>": [("<string>", opts(post=lambda *args: md.post_index_name(*args)))],
     "<indexed_columns>": [("<indexed_column>", opts(prob=0.9)), "<indexed_column>,<indexed_columns>"],
-    "<indexed_column>": [("string; unused", opts(pre=lambda: md.get_column_to_index()))]
+    "<indexed_column>": [("<string>", opts(pre=lambda: md.get_column_to_index()))]
 }
 grammar.update(create_index_grammar)
 
@@ -199,7 +199,7 @@ grammar.update(save_point_grammar)
 update_stmt_grammar = {
     "<update_stmt>": [("UPDATE <insert_failure> <existing_table_name> SET <set_columns>;", opts(order=[1,2,3]))],
     "<set_columns>": [("<set_column>", opts(prob=0.95)), "<set_column>, <set_column>"],
-    "<set_column>": [("string; not used", opts(pre=lambda: md.get_set_column()))]
+    "<set_column>": [("<string>", opts(pre=lambda: md.get_set_column()))]
 }
 grammar.update(update_stmt_grammar)
 
@@ -212,7 +212,7 @@ create_trigger_grammar = {
     "<when_trigger>": ["", "BEFORE", "AFTER"],#, "INSTEAD OF"],
     "<trigger_operation>": ["DELETE", "INSERT", "UPDATE <of_column>"],
     "<of_column>": ["", "OF <of_col_name>"],
-    "<of_col_name>": [("string; not used", opts(pre=lambda: md.get_of_col_name()))],
+    "<of_col_name>": [("<string>", opts(pre=lambda: md.get_of_col_name()))],
     "<for_each_row>": ["", "FOR EACH ROW"],
     "<crud_stmts>": ["<crud_stmt>", "<crud_stmt><crud_stmts>"],
     "<crud_stmt>": ["<insert_stmt>", "<select_stmt>", "<delete_stmt>", "<update_stmt>"]
@@ -248,7 +248,7 @@ grammar.update(explain_plan_grammar)
 
 pragma_stmt_grammar = {
     "<pragma_stmt>": [("PRAGMA <main_or_temp><pragma_name_and_value>;", opts(order=[2,1]))],
-    "<pragma_name_and_value>": [("string; not used", opts(pre=lambda: md.handle_pragma()))],
+    "<pragma_name_and_value>": [("<string>", opts(pre=lambda: md.handle_pragma()))],
     "<main_or_temp>": [("", opts(pre=lambda: md.check_need_schema(), prob=0.9)), "main.", "temp."],
 }
 grammar.update(pragma_stmt_grammar)
