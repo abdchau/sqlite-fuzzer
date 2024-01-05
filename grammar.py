@@ -187,7 +187,8 @@ reindex_stmt_grammar = {
 grammar.update(reindex_stmt_grammar)
 
 save_point_grammar = {
-    "<create_savepoint>": ["SAVEPOINT <savepoint_name>;"],
+    # chaining according to fair usage policy
+    "<create_savepoint>": ["SAVEPOINT <savepoint_name>;<release_savepoint>",],
     "<savepoint_name>": [("<string>", opts(post=lambda *args: md.post_savepoint_name(*args)))],
 
     "<release_savepoint>": ["RELEASE <savepoint> <existing_savepoint_name>;"],
