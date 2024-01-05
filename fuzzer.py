@@ -1,7 +1,5 @@
 from fuzzingbook.GeneratorGrammarFuzzer import PGGCFuzzer
-from fuzzingbook.Grammars import Grammar
 import grammar
-
 
 class Fuzzer:
     def __init__(self):
