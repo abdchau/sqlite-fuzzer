@@ -45,10 +45,7 @@ class MetaData:
         return args[0]
     
     def post_create_view(self, args):
-        print('POST CREATE VIEW', args, self.current_table)
         if self.current_table.table_name:
-            print('PRINTING', self.new_view)
-            # exit()
             self.current_table.associated_views.append(self.new_view)
 
         return args[0]
@@ -68,8 +65,6 @@ class MetaData:
         return s
 
     def post_table_name(self, args):
-        print('TABLE NAME', args)
-        # exit()
         table_name = args[0]
         table_name = self.force_string_min_length(table_name, 3)
         return table_name
@@ -82,9 +77,6 @@ class MetaData:
         if self.current_table.table_name not in self.created_tables.keys():
             self.created_tables[args[2]] = copy.deepcopy(self.current_table)
 
-        # if self.input_fuzzed > 9:
-        #     print(self.created_tables)
-        #     exit()
         return args
 
     def add_column(self, args):
@@ -127,7 +119,6 @@ class MetaData:
     def construct_insert_table_cols(self):
         if not self.created_tables:
             return ''
-        print(self.created_tables)
         self.current_table: TableData = random.choice(list(self.created_tables.values()))
         col_str = ', '.join([c.column_name for c in self.current_table.columns])
         return f"{self.current_table.table_name}({col_str})"
@@ -222,8 +213,6 @@ class MetaData:
 
         # chaining commands according to fair use policy: https://cms.cispa.saarland/askbot/fuzzing2324/question/415/project-1-fuzz_one_input-should-generate-only-one-sqlite-command/
         drops = ''.join([f"DROP VIEW {view};" for view in self.current_table.associated_views])
-        print('PRINTING DROP', drops)
-        # exit()
         return drops
 
     def post_view_name(self, args):
@@ -269,7 +258,6 @@ class MetaData:
     def get_release_savepoint(self):
         if self._created_savepoints:
             idx = random.randint(0, len(self._created_savepoints) - 1)
-            print(self._created_savepoints, idx)
             savepoint = self._created_savepoints[idx]
             self._created_savepoints = self._created_savepoints[:idx]
             return savepoint
@@ -331,7 +319,3 @@ class MetaData:
     def check_need_schema(self):
         if self._need_schema_for_pragma:
             return 'main.'
-
-    def print_vars(self):
-        print(self.created_tables)
-        print(self.deleted_tables)

@@ -21,7 +21,6 @@ class FasterPGGCFuzzer(PGGCFuzzer):
         if expansion_str in self._expansion_cache:
             self._expansion_invocations_cached += 1
             cached_result = copy.deepcopy(self._expansion_cache[expansion_str])
-            print(cached_result)
             return cached_result
 
 
@@ -76,6 +75,4 @@ class Fuzzer:
     def fuzz_one_input(self) -> str:
         # This function should be implemented, but the signature may not change.
         fuzzed_input = self.fuzzer.fuzz()
-        print('Outside', fuzzed_input)
-        # grammar.md.print_vars()
         return fuzzed_input
