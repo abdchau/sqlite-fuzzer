@@ -150,6 +150,13 @@ class MetaData:
 
         return self.current_table.table_name
 
+    def wrap_aggregate(self, col_name):
+        agg_funcs = ["avg", "count", "group_concat", "max", "min", "sum", "total"]
+        if random.uniform(0, 1) < 0.1:
+            return f"{random.choice(agg_funcs)}({col_name})"
+        else:
+            return col_name
+
     def get_select_columns(self):
         if not self.created_tables:
             return '*'
@@ -157,7 +164,7 @@ class MetaData:
         self.current_table: TableData = random.choice(list(self.created_tables.values()))
 
         num = random.randint(1, max(1, len(self.current_table.columns)))
-        return ', '.join([c.column_name for c in self.current_table.columns[:num]]) if len(self.current_table.columns) > 0 else '*'
+        return ', '.join([self.wrap_aggregate(c.column_name) for c in self.current_table.columns[:num]]) if len(self.current_table.columns) > 0 else '*'
 
     def get_select_table(self):
         return self.current_table.table_name if self.current_table.table_name else ''.join([random.choice(string.ascii_lowercase) for i in range(3)])

@@ -122,10 +122,19 @@ insert_stmt_grammar = {
 grammar.update(insert_stmt_grammar)
 
 select_stmt_grammar = {
-    "<select_stmt>": [("SELECT <distinct> <select_columns> FROM <select_table_name> <where_clause> <limit_clause>;", opts(order=[1,2,3,4,5]))],
+    "<select_stmt>": [("<select_constant>;", opts(prob=0.001)), ("<select_from_table>;", opts(prob=0.5)), "<select_from_table> <compound_operator> <select_stmt>"],
+    "<select_from_table>": [("SELECT <distinct> <select_columns> FROM <select_table_name> <where_clause> <limit_clause>", opts(order=[1,2,3,4,5]))],
+    "<compound_operator>": ["UNION", "UNION ALL", "INTERSECT", "EXCEPT"],
     "<select_columns>": [("<string>", opts(pre=lambda: md.get_select_columns()))],
     "<select_table_name>": [("<table_name>",opts(pre=lambda: md.get_select_table()))],
-    "<where_clause>": ["", "WHERE <expr>"],
+    "<where_clause>": [("", opts(prob=0.8)), "WHERE <expr>"],
+
+    "<select_constant>": ["SELECT <math_expr>"],
+    "<math_expr>": ["<func_one>"],# "<func_two>", ("pi()", opts(prob=0.001))],
+    "<func_one>": ["<func_one_name>(<signed_number>)"],
+    # "<func_two>": ["<func_two_name>(<signed_number>,<signed_number>)"],
+    "<func_one_name>": ["abs"], #"acos", "acosh", "asin", "asinh", "atan", "atanh", "ceil", "ceiling", "cos", "cosh", "degrees", "exp", "floor", "ln", "log", "log10", "log2", "radians", "sin", "sinh", "sqrt", "tan", "tanh", "trunc"],
+    # "<func_two_name>": ["atan2", "log", "mod", "pow", "power"],
 }
 grammar.update(select_stmt_grammar)
 
